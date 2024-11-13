@@ -23,6 +23,7 @@ jobs: # 작업 단위
       - name: Run test
         run: npm test
   deploy:
+    needs: test # 병렬적으로 실행되는 job을 test가 끝난 이후 실행되도록 (depend_on)같은 느낌 [job1, job2] 이렇게 할 수도 있음
     runs-on: ubuntu-latest
     steps:
       - name: Get Code
