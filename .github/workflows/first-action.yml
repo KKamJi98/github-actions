@@ -1,0 +1,17 @@
+name: First Workflow # Action의 이름
+
+# 트리거를 정의
+# push: 특정 브랜치에 코드가 푸시될 때 워크플로우를 실행
+# pull_request: 특정 브랜치에 PR(pull request)이 생성되거나 업데이트될 때 실행
+# schedule: 크론 스케줄을 사용하여 정기적으로 실행
+# workflow_dispatch: 수동으로 실행할 수 있는 버튼을 추가하여 실행
+on: workflow_dispatch 
+
+jobs: # 작업 단위
+  first-job:
+    runs-on: ubuntu-latest # 실행 환경 https://docs.github.com/en/actions/using-github-hosted-runners/using-github-hosted-runners/about-github-hosted-runners
+    steps:
+      - name: Print greeting
+        run: echo "Hello World!"
+      - name: Print goodbye
+        run: echo "Done - bye!"
