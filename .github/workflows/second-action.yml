@@ -5,7 +5,7 @@ name: Test Project # Action의 이름
 # pull_request: 특정 브랜치에 PR(pull request)이 생성되거나 업데이트될 때 실행
 # schedule: 크론 스케줄을 사용하여 정기적으로 실행
 # workflow_dispatch: 수동으로 실행할 수 있는 버튼을 추가하여 실행
-on: push 
+on: push
 
 jobs: # 작업 단위
   test:
@@ -22,3 +22,18 @@ jobs: # 작업 단위
         run: npm ci # CI/CD 및 일관된 종속성 설치에 특화된 패키지 설치방법
       - name: Run test
         run: npm test
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v3
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Build project
+        run: npm run build
+      - name: Deploy
+        run: echo "Deploying ..."
