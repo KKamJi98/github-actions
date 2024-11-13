@@ -6,7 +6,7 @@ name: Test Project # Action의 이름
 # schedule: 크론 스케줄을 사용하여 정기적으로 실행
 # workflow_dispatch: 수동으로 실행할 수 있는 버튼을 추가하여 실행
 on: push
-
+# on: [push, workflow_dispatch] # Multiple Triggers
 jobs: # 작업 단위
   test:
     runs-on: ubuntu-latest
