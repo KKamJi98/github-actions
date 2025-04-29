@@ -1,6 +1,9 @@
 name: Test Project
 
 on:
+  push:
+    paths:
+      - react/**
   # push:
   #   branches:
   #     - main

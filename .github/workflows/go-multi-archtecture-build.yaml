@@ -3,9 +3,11 @@ name: Build & Push Multi-Arch to ECR
 
 # main 브랜치에 푸시될 때 동작
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    paths:
+      - go/**
+    # branches:
+    #   - main
   workflow_dispatch:
 
 # OIDC를 이용해 AWS 역할을 가져오기 위해 id-token 권한 필요
@@ -52,8 +54,8 @@ jobs:
       - name: Build and push multi-arch image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: Dockerfile
+          context: ./go
+          file: ./go/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
