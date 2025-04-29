@@ -1,0 +1,61 @@
+# .github/workflows/ecr-publish.yml
+name: Build & Push Multi-Arch to ECR
+
+# main 브랜치에 푸시될 때 동작
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+
+# OIDC를 이용해 AWS 역할을 가져오기 위해 id-token 권한 필요
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-24.04
+
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. QEMU 에뮬레이션 등록 (멀티아키 Buildx 사용 시 필요)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 3. Buildx 빌더 세팅
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 4. AWS 자격 증명 구성 (OIDC 방식)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
+          aws-region:    ${{ secrets.AWS_REGION }}
+
+      # 5. ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        run: |
+          aws ecr get-login-password \
+            --region ${{ secrets.AWS_REGION }} \
+          | docker login \
+            --username AWS \
+            --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      # 6. 멀티 아키텍처 이미지 빌드 & 푸시
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
