@@ -7,7 +7,9 @@ RUN go mod download
 # 소스 코드 복사 및 빌드
 COPY . .
 # 정적 링크, Linux AMD64 용 바이너리로 컴파일
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 \
+    GOOS=${TARGETOS} \
+    GOARCH=${TARGETARCH} \
     go build -ldflags="-s -w" -o server .
 
 # 2) Runtime Stage
