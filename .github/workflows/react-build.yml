@@ -1,4 +1,4 @@
-name: React Project Test Action
+name: "[React] Project Test Action"
 
 on:
   push:
