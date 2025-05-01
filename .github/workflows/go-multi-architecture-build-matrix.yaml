@@ -1,0 +1,93 @@
+# .github/workflows/ecr-publish.yml
+name: "[Go] Gin Project Build & Push Multi-Arch Using Matrix to ECR"
+
+on:
+  push:
+    paths:
+      - go/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # 1) 아키텍처별 이미지 Build & Push
+  # ──────────────────────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push (${{ matrix.arch }})
+    strategy:
+      matrix:
+        include:
+          # AMD64용 러너
+          - arch: amd64
+            runner: ubuntu-24.04
+          # ARM64용 러너
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
+          aws-region:    ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      # 아키텍처별 단일 이미지 빌드 & 푸시
+      - name: Build & push image (${{ matrix.arch }})
+        uses: docker/build-push-action@v5
+        with:
+          context: ./go
+          file:    ./go/Dockerfile
+          platforms: linux/${{ matrix.arch }}
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-${{ github.sha }}
+
+  # ──────────────────────────────────────────────────────────────
+  # 2) 다중 아키텍처 Manifest 생성
+  # ──────────────────────────────────────────────────────────────
+  create-manifest:
+    name: Create & Push Multi-Arch Manifest
+    needs: build-and-push
+    runs-on: ubuntu-24.04   # manifest 작업은 아무 러너에서나 가능 (x64 사용 예시)
+
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
+          aws-region:    ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin \
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      # 빌드한 두 이미지를 묶어 manifest 생성 후 :latest 푸시
+      - name: Create & push manifest
+        run: |
+          IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
+          docker manifest create $IMAGE:latest \
+            --amend $IMAGE:amd64-${{ github.sha }} \
+            --amend $IMAGE:arm64-${{ github.sha }}
+
+          docker manifest push $IMAGE:latest
