@@ -46,6 +46,12 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            # 0. 이번 실행의 **버전 번호(0-base)** 계산
+      
+      # 버전 태그 설정
+      - name: Set version tag
+        id: ver
+        run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
 
       # 아키텍처별 단일 이미지 빌드 & 푸시
       - name: Build & push image (${{ matrix.arch }})
@@ -56,8 +62,8 @@ jobs:
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-${{ github.sha }}
-
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+          
   # ──────────────────────────────────────────────────────────────
   # 2) 다중 아키텍처 Manifest 생성
   # ──────────────────────────────────────────────────────────────
@@ -67,6 +73,10 @@ jobs:
     runs-on: ubuntu-24.04   # manifest 작업은 아무 러너에서나 가능 (x64 사용 예시)
 
     steps:
+      - name: Set version tag
+        id: ver
+        run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
+        
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -82,7 +92,10 @@ jobs:
       - name: Create & push multi-arch manifest
         run: |
           IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
+          VER=${{ steps.ver.outputs.VER }}
+
           docker buildx imagetools create \
             --tag $IMAGE:latest \
-            $IMAGE:amd64-${{ github.sha }} \
-            $IMAGE:arm64-${{ github.sha }}
+            --tag $IMAGE:v$VER \
+            $IMAGE:amd64-v$VER \
+            $IMAGE:arm64-v$VER
