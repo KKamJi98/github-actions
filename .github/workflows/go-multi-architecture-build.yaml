@@ -1,4 +1,3 @@
-# .github/workflows/ecr-publish.yml
 name: "[Go] Gin Project Build & Push Multi-Arch Using QEMU to ECR"
 
 # main 브랜치에 푸시될 때 동작
