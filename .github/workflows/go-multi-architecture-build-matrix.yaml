@@ -63,15 +63,18 @@ jobs:
       #     tags: |
       #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
       
-            # Child 이미지만 push (Manifest 생성 안 함)
-      - name: Build & push child image (${ { matrix.arch } })
+      # Child 이미지만 push (Manifest 생성 안 함)
+      - name: Build & push child image (${{ matrix.arch }})
         uses: docker/build-push-action@v5
+        env:
+          IMAGE_REPO:  ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
         with:
           context: ./go
           file:    ./go/Dockerfile
-          platforms: linux/${{ matrix.arch }}          # 네이티브 단일 플랫폼
-          outputs: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }},push=true
-          provenance: false   # (선택) SBOM/attest 필요 없을 때
+          platforms: linux/${{ matrix.arch }}
+          outputs: type=registry,name=${{ env.IMAGE_REPO }},tag=${{ matrix.arch }}-v${{ steps.ver.outputs.VER }},push=true
+          provenance: false
+          
 
   # ──────────────────────────────────────────────────────────────
   # 2) 통합 Manifest 생성
