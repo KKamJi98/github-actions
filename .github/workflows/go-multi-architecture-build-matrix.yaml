@@ -52,31 +52,19 @@ jobs:
         id: ver
         run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
 
-      # # 아키텍처별 단일 이미지 빌드 & 푸시 (Manifest가 같이 올라감)
-      # - name: Build & push image (${{ matrix.arch }})
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: ./go
-      #     file:    ./go/Dockerfile
-      #     platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
-      #     push: true
-      #     tags: |
-      #       ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
-      
-      # Child 이미지만 push (Manifest 생성 안 함)
-      - name: Build & push child image (${{ matrix.arch }})
+      # 아키텍처별 단일 이미지 빌드 & 푸시
+      - name: Build & push image (${{ matrix.arch }})
         uses: docker/build-push-action@v5
         with:
           context: ./go
           file:    ./go/Dockerfile
-          platforms: linux/${{ matrix.arch }}
-          outputs: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }},push=true
-          provenance: false
-
+          platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
+          push: true
+          tags: |
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
           
-
   # ──────────────────────────────────────────────────────────────
-  # 2) 통합 Manifest 생성
+  # 2) 다중 아키텍처 Manifest 생성
   # ──────────────────────────────────────────────────────────────
   create-manifest:
     name: Create & Push Multi-Arch Manifest
