@@ -52,7 +52,7 @@ jobs:
         id: ver
         run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
 
-      # # 아키텍처별 단일 이미지 빌드 & 푸시
+      # # 아키텍처별 단일 이미지 빌드 & 푸시 (Manifest가 같이 올라감)
       # - name: Build & push image (${{ matrix.arch }})
       #   uses: docker/build-push-action@v5
       #   with:
@@ -66,14 +66,13 @@ jobs:
       # Child 이미지만 push (Manifest 생성 안 함)
       - name: Build & push child image (${{ matrix.arch }})
         uses: docker/build-push-action@v5
-        env:
-          IMAGE_REPO:  ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
         with:
           context: ./go
           file:    ./go/Dockerfile
           platforms: linux/${{ matrix.arch }}
-          outputs: type=registry,name=${{ env.IMAGE_REPO }},tag=${{ matrix.arch }}-v${{ steps.ver.outputs.VER }},push=true
+          outputs: type=registry,ref=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }},push=true
           provenance: false
+
           
 
   # ──────────────────────────────────────────────────────────────
