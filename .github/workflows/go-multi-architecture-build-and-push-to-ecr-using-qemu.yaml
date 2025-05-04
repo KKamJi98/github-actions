@@ -1,4 +1,4 @@
-name: "[Go] Gin Project Build & Push Multi-Arch Using QEMU to ECR"
+name: "[Go-ECR-QEMU] Gin Project Build & Push Multi-Arch"
 
 # main 브랜치에 푸시될 때 동작
 on:
