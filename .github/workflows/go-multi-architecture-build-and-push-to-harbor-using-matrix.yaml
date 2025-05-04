@@ -1,4 +1,4 @@
-name: "[Go] Gin Project Build & Push Multi-Arch → Harbor"
+name: "[Go-Harbor-Matrix] Gin Project Build & Push Multi-Arch"
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGISTRY: ${{ secrets.HARBOR_REGISTRY }}
-  IMAGE:    ${{ env.REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ secrets.HARBOR_REPO }}
+  IMAGE:    ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ secrets.HARBOR_REPO }}
 
 jobs:
 # ──────────────────────────────────────────
