@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - go/**
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:

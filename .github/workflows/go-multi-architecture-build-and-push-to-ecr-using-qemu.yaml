@@ -2,11 +2,11 @@ name: "[Go] Gin Project Build & Push Multi-Arch Using QEMU to ECR"
 
 # main 브랜치에 푸시될 때 동작
 on:
-  # push:
-  #   paths:
-  #     - go/**
-    # branches:
-    #   - main
+  push:
+    paths:
+      - go/**
+    branches:
+      - main
   workflow_dispatch:
 
 # OIDC를 이용해 AWS 역할을 가져오기 위해 id-token 권한 필요
