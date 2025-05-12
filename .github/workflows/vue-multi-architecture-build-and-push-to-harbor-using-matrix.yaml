@@ -1,0 +1,111 @@
+name: "[Vue-Harbor-Matrix] Vue Project Build & Push Multi-Arch"
+
+on:
+  push:
+    paths:
+      - vue/**
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # 1) 테스트 실행
+  # ──────────────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vue
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  # ──────────────────────────────────────────────────────────────
+  # 2) 아키텍처별 이미지 Build & Push
+  # ──────────────────────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push (${{ matrix.arch }})
+    needs: test
+    strategy:
+      matrix:
+        include:
+          # AMD64용 러너
+          - arch: amd64
+            runner: ubuntu-24.04
+          # ARM64용 러너
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+      
+      # 버전 태그 설정
+      - name: Set version tag
+        id: ver
+        run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
+
+      # 아키텍처별 단일 이미지 빌드 & 푸시
+      - name: Build & push image (${{ matrix.arch }})
+        uses: docker/build-push-action@v5
+        with:
+          context: ./vue
+          file:    ./vue/Dockerfile
+          platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
+          push: true
+          tags: |
+            ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/vue:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+          
+  # ──────────────────────────────────────────────────────────────
+  # 3) 다중 아키텍처 Manifest 생성
+  # ──────────────────────────────────────────────────────────────
+  create-manifest:
+    name: Create & Push Multi-Arch Manifest
+    needs: build-and-push
+    runs-on: ubuntu-24.04   # manifest 작업은 아무 러너에서나 가능 (x64 사용 예시)
+
+    steps:
+      - name: Set version tag
+        id: ver
+        run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
+        
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Create & push multi-arch manifest
+        run: |
+          IMAGE=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/vue
+          VER=${{ steps.ver.outputs.VER }}
+
+          docker buildx imagetools create \
+            --tag $IMAGE:latest \
+            --tag $IMAGE:v$VER \
+            $IMAGE:amd64-v$VER \
+            $IMAGE:arm64-v$VER
