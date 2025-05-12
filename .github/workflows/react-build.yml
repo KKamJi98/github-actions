@@ -1,12 +1,11 @@
-name: "[React] Project Test Action"
+name: "[React] Development Branch Test Action"
 
 on:
   push:
     paths:
       - react/**
-  # push:
-  #   branches:
-  #     - main
+    branches-ignore:
+      - main
   workflow_dispatch:
 
 
