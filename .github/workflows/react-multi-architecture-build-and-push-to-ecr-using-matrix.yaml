@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: npm ci
@@ -70,14 +70,14 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
-          aws-region:    ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
             ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-      
+
       # 버전 태그 설정
       - name: Set version tag
         id: ver
@@ -88,12 +88,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./react
-          file:    ./react/Dockerfile
+          file: ./react/Dockerfile
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REACT_ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
-          
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+
   # ──────────────────────────────────────────────────────────────
   # 3) 다중 아키텍처 Manifest 생성
   # ──────────────────────────────────────────────────────────────
@@ -101,18 +101,18 @@ jobs:
     name: Create & Push Multi-Arch Manifest
     needs: build-and-push
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04   # manifest 작업은 아무 러너에서나 가능 (x64 사용 예시)
+    runs-on: ubuntu-24.04 # manifest 작업은 아무 러너에서나 가능 (x64 사용 예시)
 
     steps:
       - name: Set version tag
         id: ver
         run: echo "VER=$((GITHUB_RUN_NUMBER-1))" >> "$GITHUB_OUTPUT"
-        
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_ARN }}
-          aws-region:    ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         run: |
@@ -122,7 +122,7 @@ jobs:
 
       - name: Create & push multi-arch manifest
         run: |
-          IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.REACT_ECR_REPOSITORY }}
+          IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
@@ -159,7 +159,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./react
-          file:    ./react/Dockerfile
+          file: ./react/Dockerfile
           platforms: linux/${{ matrix.arch }}
           push: false
           tags: react-test:${{ matrix.arch }}
