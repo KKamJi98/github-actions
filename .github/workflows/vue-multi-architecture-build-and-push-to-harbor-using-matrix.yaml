@@ -103,7 +103,7 @@ jobs:
 
       - name: Create & push multi-arch manifest
         run: |
-          IMAGE=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/vue
+          IMAGE=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
