@@ -1,5 +1,5 @@
 # ---------- 1) Build Stage ----------
-FROM --platform=$BUILDPLATFORM node:18-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:24-alpine AS builder
 
 # Buildx 가 주입하는 변수를 명시적으로 선언
 ARG TARGETOS
