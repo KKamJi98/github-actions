@@ -88,7 +88,7 @@ jobs:
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}/vue:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:vue-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
           
   # ──────────────────────────────────────────────────────────────
   # 3) 다중 아키텍처 Manifest 생성
@@ -117,11 +117,11 @@ jobs:
 
       - name: Create & push multi-arch manifest
         run: |
-          IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}/vue
+          IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
-            --tag $IMAGE:latest \
-            --tag $IMAGE:v$VER \
-            $IMAGE:amd64-v$VER \
-            $IMAGE:arm64-v$VER
+            --tag $IMAGE:vue-latest \
+            --tag $IMAGE:vue-v$VER \
+            $IMAGE:amd64-vue-v$VER \
+            $IMAGE:arm64-vue-v$VER
