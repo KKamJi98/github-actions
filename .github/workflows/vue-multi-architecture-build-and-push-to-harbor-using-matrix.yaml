@@ -79,7 +79,7 @@ jobs:
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}:vue-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+            ${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ secrets.HARBOR_REPO }}:vue-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
           
   # ──────────────────────────────────────────────────────────────
   # 3) 다중 아키텍처 Manifest 생성
@@ -103,11 +103,11 @@ jobs:
 
       - name: Create & push multi-arch manifest
         run: |
-          IMAGE=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}
+          IMAGE=${{ secrets.HARBOR_REGISTRY }}/${{ secrets.HARBOR_PROJECT }}/${{ secrets.HARBOR_REPO }}
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
-            --tag $IMAGE:latest \
-            --tag $IMAGE:v$VER \
+            --tag $IMAGE:vue-latest \
+            --tag $IMAGE:vue-v$VER \
             $IMAGE:vue-amd64-v$VER \
             $IMAGE:vue-arm64-v$VER
