@@ -123,5 +123,5 @@ jobs:
           docker buildx imagetools create \
             --tag $IMAGE:vue-latest \
             --tag $IMAGE:vue-v$VER \
-            $IMAGE:amd64-vue-v$VER \
-            $IMAGE:arm64-vue-v$VER
+            $IMAGE:vue-amd64-v$VER \
+            $IMAGE:vue-arm64-v$VER
