@@ -18,4 +18,3 @@ podman build -t gin-test .
 podman run -p 8080:8080 localhost/gin-test
 # podman run --name gin-test -dp 8080:8080 localhost/gin-test
 ```
-

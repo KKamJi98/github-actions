@@ -45,6 +45,7 @@ This project includes three different CI/CD pipeline approaches for multi-archit
 ### 1. Matrix Strategy (ECR)
 
 Uses GitHub Actions matrix strategy to build native images on different architecture runners:
+
 - AMD64 builds on `ubuntu-24.04`
 - ARM64 builds on `ubuntu-24.04-arm`
 
@@ -67,12 +68,14 @@ Uses QEMU to emulate different architectures on a single runner, allowing for mu
 ## Required Secrets
 
 For ECR workflows:
+
 - `AWS_ROLE_TO_ASSUME_ARN`
 - `AWS_REGION`
 - `AWS_ACCOUNT_ID`
 - `VUE_ECR_REPOSITORY`
 
 For Harbor workflow:
+
 - `HARBOR_REGISTRY`
 - `HARBOR_USERNAME`
 - `HARBOR_PASSWORD`
