@@ -56,7 +56,7 @@ jobs:
         file:    ./go/Dockerfile
         platforms: linux/${{ matrix.arch }}
         push: true
-        tags: ${{ env.IMAGE }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+        tags: ${{ env.IMAGE }}:go-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
 
 # ──────────────────────────────────────────
 # 2) 통합 Manifest 생성
@@ -81,7 +81,7 @@ jobs:
     - name: Create & push manifest
       run: |
         docker buildx imagetools create \
-          --tag ${IMAGE}:latest \
-          --tag ${IMAGE}:v${{ steps.ver.outputs.VER }} \
-          ${IMAGE}:amd64-v${{ steps.ver.outputs.VER }} \
-          ${IMAGE}:arm64-v${{ steps.ver.outputs.VER }}
+          --tag ${IMAGE}:go-latest \
+          --tag ${IMAGE}:go-v${{ steps.ver.outputs.VER }} \
+          ${IMAGE}:go-amd64-v${{ steps.ver.outputs.VER }} \
+          ${IMAGE}:go-arm64-v${{ steps.ver.outputs.VER }}

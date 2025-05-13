@@ -95,7 +95,7 @@ jobs:
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:react-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
 
   # ──────────────────────────────────────────────────────────────
   # 3) 다중 아키텍처 Manifest 생성
@@ -129,10 +129,10 @@ jobs:
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
-            --tag $IMAGE:latest \
-            --tag $IMAGE:v$VER \
-            $IMAGE:amd64-v$VER \
-            $IMAGE:arm64-v$VER
+            --tag $IMAGE:react-latest \
+            --tag $IMAGE:react-v$VER \
+            $IMAGE:react-amd64-v$VER \
+            $IMAGE:react-arm64-v$VER
 
   # ──────────────────────────────────────────────────────────────
   # 4) PR 검증을 위한 Build 테스트 (PR에서만 실행)

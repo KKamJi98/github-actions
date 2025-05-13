@@ -63,7 +63,7 @@ jobs:
           platforms: linux/${{ matrix.arch }} # Native 단일 플랫폼 빌드
           push: true
           tags: |
-            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
+            ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:go-${{ matrix.arch }}-v${{ steps.ver.outputs.VER }}
           
   # ──────────────────────────────────────────────────────────────
   # 2) 다중 아키텍처 Manifest 생성
@@ -96,7 +96,7 @@ jobs:
           VER=${{ steps.ver.outputs.VER }}
 
           docker buildx imagetools create \
-            --tag $IMAGE:latest \
-            --tag $IMAGE:v$VER \
-            $IMAGE:amd64-v$VER \
-            $IMAGE:arm64-v$VER
+            --tag $IMAGE:go-latest \
+            --tag $IMAGE:go-v$VER \
+            $IMAGE:go-amd64-v$VER \
+            $IMAGE:go-arm64-v$VER
