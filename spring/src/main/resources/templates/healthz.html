@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>태지가 원하는 테스트 서버</title>
+</head>
+<body data-th-object="${responseCodeDTO}">
+
+<!--요청 완료된 후 페이지를 만드는 코드-->
+<h1>서버 상태</h1>
+
+<p data-th-if="*{resultCode == 1}">200</p>
+<p data-th-if="*{resultCode != 1}">오류!!</p>
+<p>[[${responseCodeDTO.msg}]]</p>
+<p></p>
+
+</body>
+</html>
